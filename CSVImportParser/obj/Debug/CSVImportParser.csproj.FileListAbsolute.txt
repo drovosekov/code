@@ -1,0 +1,8 @@
+C:\my projects\trunk\CSVImportParser\obj\Debug\CSVImportParser.frmCSVImport.resources
+C:\my projects\trunk\CSVImportParser\obj\Debug\CSVImportParser.Properties.Resources.resources
+C:\my projects\trunk\CSVImportParser\obj\Debug\CSVImportParser.csproj.GenerateResource.Cache
+C:\my projects\trunk\CSVImportParser\bin\Debug\CSVImportParser.dll
+C:\my projects\trunk\CSVImportParser\bin\Debug\CSVImportParser.pdb
+C:\my projects\trunk\CSVImportParser\obj\Debug\CSVImportParser.dll
+C:\my projects\trunk\CSVImportParser\obj\Debug\CSVImportParser.pdb
+C:\my projects\trunk\CSVImportParser\obj\Debug\CSVImportParser.csprojResolveAssemblyReference.cache

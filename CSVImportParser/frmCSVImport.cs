@@ -16,20 +16,20 @@ namespace CSVImportParser
 {
     public partial class frmCSVImport : Form
     {
-    #region delegates
-    /// <summary>
-    /// вызывается для предварительного форматирования элемента строки таблицы с импортируемыми данными
-    /// чтоб подготовить данные к переводу в значения элементов класса
-    /// </summary>
-    public delegate void PreFormatingRow(ref object datavalue, string datacolumns);
+        #region delegates
+        /// <summary>
+        /// вызывается для предварительного форматирования элемента строки таблицы с импортируемыми данными
+        /// чтоб подготовить данные к переводу в значения элементов класса
+        /// </summary>
+        public delegate void PreFormatingRow(ref object datavalue, string datacolumns);
 
-    /// <summary>
-    /// вызывается после нажатия ОК. В случае возврата из ф-ии false - будет показано сообщение
-    /// о наличии ошибок в данных таблицы и предложение их исправить
-    /// ошибки перечисляются в таблице DGV_ErrorTable (на форме в закладке "Анализ таблицы")
-    /// </summary>
-    public delegate bool CheckErrorsFunc(DataGridView DGV_SourceDataTable, DataGridView DGV_ErrorTable);
-    #endregion
+        /// <summary>
+        /// вызывается после нажатия ОК. В случае возврата из ф-ии false - будет показано сообщение
+        /// о наличии ошибок в данных таблицы и предложение их исправить
+        /// ошибки перечисляются в таблице DGV_ErrorTable (на форме в закладке "Анализ таблицы")
+        /// </summary>
+        public delegate bool CheckErrorsFunc(ref DGV DGV_SourceDataTable, ref  DataGridView DGV_ErrorTable);
+        #endregion
 
         #region private section
         private string _ImportTipsText;
@@ -146,7 +146,7 @@ namespace CSVImportParser
                                 v = dgv_row.Cells[dc.Index].Value;
                                 if (_preFormat != null)
                                 {
-                                     _preFormat(ref v, dc.DataPropertyName);
+                                    _preFormat(ref v, dc.DataPropertyName);
                                     if (v == null)
                                     {
                                         skip = true;
@@ -204,7 +204,7 @@ namespace CSVImportParser
             CommonFuncs.LoadFormPositionAndSize(this);
 
             if (_check == null) { TabPages.TabPages.RemoveAt(2); }
-            if (string.IsNullOrEmpty(ImportTipsText)) { TabPages.TabPages.RemoveAt (0); }
+            if (string.IsNullOrEmpty(ImportTipsText)) { TabPages.TabPages.RemoveAt(0); }
 
             Parser = new CSVParser()
             {
@@ -227,7 +227,7 @@ namespace CSVImportParser
             SuspendDGV();
             try
             {
-            txtSourceDataFile.Text = Parser.PreviewData;
+                txtSourceDataFile.Text = Parser.PreviewData;
                 toolStripProgressBar1.Maximum = Parser.RowsCount;
                 toolStripProgressBar1.Value = 0;
                 toolStripProgressBar1.Visible = true;
@@ -607,7 +607,7 @@ namespace CSVImportParser
 
             DGV_ImportData.EndEdit();
 
-            if (_check != null && _check(DGV_ImportData, DGV_Errors) == false)
+            if (_check != null && _check(ref DGV_ImportData,ref DGV_Errors) == false)
             {
                 MessageBox.Show(Resources.НеобходимоУстранитьВсеОшибкиВДанныхПередИм,
                                 Resources.ОшибкиВИмпортируемыхДанных, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);

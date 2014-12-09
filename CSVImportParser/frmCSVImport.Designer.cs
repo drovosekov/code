@@ -346,7 +346,6 @@ namespace CSVImportParser
             this.DGV_ImportData.AllowUserToResizeRows = false;
             this.DGV_ImportData.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.DisplayedCells;
             this.DGV_ImportData.BackgroundColor = System.Drawing.Color.White;
-            this.DGV_ImportData.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.DGV_ImportData.ClipboardCopyMode = System.Windows.Forms.DataGridViewClipboardCopyMode.EnableAlwaysIncludeHeaderText;
             this.DGV_ImportData.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.DGV_ImportData.Dock = System.Windows.Forms.DockStyle.Fill;

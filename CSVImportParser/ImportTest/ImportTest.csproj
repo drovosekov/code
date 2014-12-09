@@ -61,22 +61,11 @@
     <Compile Include="TestImportClass.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="BLToolkit.4">
-      <HintPath>..\dlls\BLToolkit.4.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\NZDP.CAD.Catenary.Objects\NZDP.CAD.Catenary.Objects.csproj">
-      <Project>{5FB46275-7C6E-4FCA-B157-0AF67791D385}</Project>
-      <Name>NZDP.CAD.Catenary.Objects</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\NZDP.CAD.Catenary.Project\NZDP.CAD.Catenary.Project.csproj">
-      <Project>{F7EE46DB-FB09-4947-AE25-C2D79E2B583C}</Project>
-      <Name>NZDP.CAD.Catenary.Project</Name>
-    </ProjectReference>
     <ProjectReference Include="..\CSVImportParser.csproj">
       <Project>{C19C77FE-9F4A-4506-B118-E30DABC403A3}</Project>
       <Name>NZDP.CAD.Import</Name>

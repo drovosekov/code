@@ -152,6 +152,15 @@ namespace CSVImportParser.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Обработка....
+        /// </summary>
+        internal static string Обработка {
+            get {
+                return ResourceManager.GetString("Обработка", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Ошибка.
         /// </summary>
         internal static string Ошибка {

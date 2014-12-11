@@ -71,7 +71,6 @@ namespace CSVImportParser
             this.ErrorText = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.CSV_StatusStrip = new System.Windows.Forms.StatusStrip();
             this.ToolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
-            this.toolStripProgressBar1 = new System.Windows.Forms.ToolStripProgressBar();
             this.HeaderContextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.SCV_ToolStripMain.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.SplitContainer1)).BeginInit();
@@ -482,8 +481,7 @@ namespace CSVImportParser
             // CSV_StatusStrip
             // 
             this.CSV_StatusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.ToolStripStatusLabel1,
-            this.toolStripProgressBar1});
+            this.ToolStripStatusLabel1});
             this.CSV_StatusStrip.Location = new System.Drawing.Point(0, 188);
             this.CSV_StatusStrip.Name = "CSV_StatusStrip";
             this.CSV_StatusStrip.Size = new System.Drawing.Size(849, 22);
@@ -495,12 +493,6 @@ namespace CSVImportParser
             this.ToolStripStatusLabel1.Name = "ToolStripStatusLabel1";
             this.ToolStripStatusLabel1.Size = new System.Drawing.Size(43, 17);
             this.ToolStripStatusLabel1.Text = "Готово";
-            // 
-            // toolStripProgressBar1
-            // 
-            this.toolStripProgressBar1.Name = "toolStripProgressBar1";
-            this.toolStripProgressBar1.Size = new System.Drawing.Size(200, 16);
-            this.toolStripProgressBar1.Visible = false;
             // 
             // HeaderContextMenu
             // 
@@ -568,7 +560,6 @@ namespace CSVImportParser
         internal System.Windows.Forms.ToolStripButton tblExport;
         internal System.Windows.Forms.ToolStripButton cmdCancel;
         internal System.Windows.Forms.ToolStripButton cmdOK;
-        private System.Windows.Forms.ToolStripProgressBar toolStripProgressBar1;
         internal System.Windows.Forms.ToolStripButton tblPasteFromClipboard;
         internal System.Windows.Forms.ToolStripButton tblCopyToClipboard;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator3;

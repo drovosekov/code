@@ -37,7 +37,8 @@ namespace CSVImportParser
         private string _ImportDialogTitle;
         private CheckErrorsFunc _check;
         private PreFormatingRow _preFormat;
-        private CSVParser Parser;
+        private CSVParser _Parser;
+        private frmProgress _Progress;
         #endregion
 
         #region public section
@@ -117,6 +118,8 @@ namespace CSVImportParser
         }
         public Collection<T> ListData<T>() where T : class, new()
         {
+            BeginProgress(Resources.Обработка, DGV_ImportData.Rows.Count);
+
             Collection<T> preList = new Collection<T>();
             bool skip = false;
             object v;
@@ -180,6 +183,10 @@ namespace CSVImportParser
                         skip = false;
                     }
                 }
+                if (dgv_row.Index % 10 == 0)
+                {
+                    onProgressChanged(dgv_row.Index);
+                }
             }
 
             return preList;
@@ -206,13 +213,13 @@ namespace CSVImportParser
             if (_check == null) { TabPages.TabPages.RemoveAt(2); }
             if (string.IsNullOrEmpty(ImportTipsText)) { TabPages.TabPages.RemoveAt(0); }
 
-            Parser = new CSVParser()
+            _Parser = new CSVParser()
             {
                 ColumnsDelimeter = Convert.ToChar(txtDelimeter.Text),
                 StartLine = Convert.ToInt32(txtStartLineImport.Text)
             };
-            Parser.onDataChanged += onDataChanged;
-            Parser.onProgressChanged += onProgressChanged;
+            _Parser.onDataChanged += onDataChanged;
+            _Parser.onProgressChanged += onProgressChanged;
             SplitContainer1.SplitterDistance = Convert.ToInt32(Registry.GetValue(CommonFuncs.GetRegistryPathForFormSettings(Name), "SplitterDistance", 266));
         }
         private void frmCSVImport_FormClosed(object sender, FormClosedEventArgs e)
@@ -222,21 +229,39 @@ namespace CSVImportParser
             Registry.SetValue(CommonFuncs.GetRegistryPathForFormSettings(Name), "SplitterDistance", SplitContainer1.SplitterDistance);
         }
 
+        #region отрисовка прогресса
+        private void BeginProgress(string Status, int Max)
+        {
+            _Progress = new frmProgress() { Text = Status };
+            _Progress.progressBar.Maximum = Max;
+            _Progress.progressBar.Value = 0;
+            _Progress.Show();
+            Application.DoEvents();
+        }
+        private void onProgressChanged(int ProgressValue)
+        {
+            _Progress.progressBar.Value = ProgressValue;
+            Application.DoEvents();
+        }
+        private void EndProgress()
+        {
+            _Progress.Dispose();
+        }
+        #endregion
+
         private void onDataChanged(bool Rebuild)
         {
             SuspendDGV();
             try
             {
-                txtSourceDataFile.Text = Parser.PreviewData;
-                toolStripProgressBar1.Maximum = Parser.RowsCount;
-                toolStripProgressBar1.Value = 0;
-                toolStripProgressBar1.Visible = true;
+                txtSourceDataFile.Text = _Parser.PreviewData;
+                BeginProgress(Resources.Обработка, _Parser.RowsCount);
 
                 //если изменения данных влияют на структуру колонок - перезагружаем их
                 if (Rebuild)
                 {
                     DGV_ImportData.Columns.Clear();
-                    DGV_ImportData.Columns.AddRange(Parser.Columns(ImportFields.NotUsedColumnHeaderText));
+                    DGV_ImportData.Columns.AddRange(_Parser.Columns(ImportFields.NotUsedColumnHeaderText));
                 }
                 //в противном случае (смена стартовой строки) только удаляем столбец Игнор. 
                 //чтоб не удалять все столбцы и не сбить уже выбранные сопоставления колонок при загрузке данных в таблицу
@@ -247,7 +272,7 @@ namespace CSVImportParser
                 }
 
                 DGV_ImportData.Rows.Clear();
-                Parser.FilleRowsTable(DGV_ImportData);
+                _Parser.FilleRowsTable(DGV_ImportData);
 
                 DGV_ImportData.Columns.Insert(0, new DataGridViewCheckBoxColumn()
                 {
@@ -266,15 +291,9 @@ namespace CSVImportParser
             }
             finally
             {
-                toolStripProgressBar1.Visible = false;
+                EndProgress();
                 ResumeDGV();
             }
-        }
-
-        private void onProgressChanged(int ProgressValue)
-        {
-            toolStripProgressBar1.Value = ProgressValue;
-            Application.DoEvents();
         }
 
         /// <summary>
@@ -456,7 +475,7 @@ namespace CSVImportParser
 
                     using (StreamWriter sw = new StreamWriter(CSV_SaveFileDialog.FileName, false, Encoding.Default))
                     {
-                        string delim = Parser.ColumnsDelimeter.ToString();
+                        string delim = _Parser.ColumnsDelimeter.ToString();
                         sw.WriteLine(string.Join(delim, (from DataGridViewColumn clm in DGV_ImportData.Columns.Cast<DataGridViewColumn>()
                                                          select clm.HeaderText).ToArray()).Replace(Resources.Игнор, "").Substring(1));
 
@@ -501,7 +520,7 @@ namespace CSVImportParser
                     {
                         using (StreamReader sr = new StreamReader(fileStream, Encoding.Default))
                         {
-                            Parser.Data = sr.ReadToEnd();
+                            _Parser.Data = sr.ReadToEnd();
                         }
                     }
                 }
@@ -532,7 +551,7 @@ namespace CSVImportParser
             IDataObject dataInClipboard = Clipboard.GetDataObject();
             if (dataInClipboard.GetDataPresent(DataFormats.Text))
             {
-                Parser.Data = dataInClipboard.GetData(DataFormats.UnicodeText, true) as string;
+                _Parser.Data = dataInClipboard.GetData(DataFormats.UnicodeText, true) as string;
             }
         }
 
@@ -577,11 +596,11 @@ namespace CSVImportParser
 
         private void txtStartLineImport_TextChanged(object sender, EventArgs e)
         {
-            Parser.StartLine = Convert.ToInt32(txtStartLineImport.Text);
+            _Parser.StartLine = Convert.ToInt32(txtStartLineImport.Text);
         }
         private void txtDelimeter_TextChanged(object sender, EventArgs e)
         {
-            Parser.ColumnsDelimeter = Convert.ToChar(txtDelimeter.Text.Replace("\\s", " ").Replace("\\t", "\t"));
+            _Parser.ColumnsDelimeter = Convert.ToChar(txtDelimeter.Text.Replace("\\s", " ").Replace("\\t", "\t"));
         }
         private void menuSep_Click(object sender, EventArgs e)
         {
@@ -607,7 +626,7 @@ namespace CSVImportParser
 
             DGV_ImportData.EndEdit();
 
-            if (_check != null && _check(ref DGV_ImportData,ref DGV_Errors) == false)
+            if (_check != null && _check(ref DGV_ImportData, ref DGV_Errors) == false)
             {
                 MessageBox.Show(Resources.НеобходимоУстранитьВсеОшибкиВДанныхПередИм,
                                 Resources.ОшибкиВИмпортируемыхДанных, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);

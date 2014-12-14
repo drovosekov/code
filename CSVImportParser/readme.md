@@ -4,7 +4,7 @@ Also it can be used for parse CSV data to custom class collection
 
 
 Consist of dll with form interface.
-At the form data loads to data grid view conrol, column which can be compared with custom class fields. It must be necessarily doing before import processing.
+At the form data loads to data grid view control, column which can be compared with custom class fields. It must be necessarily doing before import processing.
 After press "OK", for getting imported data you have two ways:
 1. get public variable "Data" of form. It represent DataTable type which contains all rows of data grid exclude marked for ignore.
 2. get public variable "ListData<T>" of form. It represet Collection of custom class type <T>. In this case - if preprocessing delegate function was setted in public variable "preFormat", this function will be called for each cell of table grid with column name at parameter:

@@ -218,9 +218,17 @@ namespace CSVImportParser
                 ColumnsDelimeter = Convert.ToChar(txtDelimeter.Text),
                 StartLine = Convert.ToInt32(txtStartLineImport.Text)
             };
+            if (File.Exists(TemplateDefaultPath))
+            {
+                using (xmlTemplateFile xmlDoc = new xmlTemplateFile(TemplateDefaultPath))
+                {
+                    txtDelimeter.Text = xmlDoc.GetByTag("Separator");
+                    txtStartLineImport.Text = xmlDoc.GetByTag("StartPosition");
+                }
+            }
             _Parser.onDataChanged += onDataChanged;
             _Parser.onProgressChanged += onProgressChanged;
-            SplitContainer1.SplitterDistance = Convert.ToInt32(Registry.GetValue(CommonFuncs.GetRegistryPathForFormSettings(Name), "SplitterDistance", 266));
+            SplitContainer1.SplitterDistance = Convert.ToInt32(Registry.GetValue(CommonFuncs.GetRegistryPathForFormSettings(Name), "SplitterDistance", SplitContainer1.SplitterDistance));
         }
         private void frmCSVImport_FormClosed(object sender, FormClosedEventArgs e)
         {
@@ -329,13 +337,16 @@ namespace CSVImportParser
             Fields fld = (Fields)((ToolStripMenuItem)sender).Tag;
             DataGridViewColumn dgvc = DGV_ImportData.Columns[fld.ColumnIndex];
             string hText = fld.HeaderText.Replace("* ", "");
-            foreach (DataGridViewColumn col in DGV_ImportData.Columns)
+            if (hText != ImportFields.NotUsedColumnHeaderText)
             {
-                if (col.HeaderText == hText)
+                foreach (DataGridViewColumn col in DGV_ImportData.Columns)
                 {
-                    col.HeaderText = ImportFields.NotUsedColumnHeaderText;
-                    col.DataPropertyName = null;
-                    return;
+                    if (col.HeaderText == hText)
+                    {
+                        col.HeaderText = ImportFields.NotUsedColumnHeaderText;
+                        col.DataPropertyName = null;
+                        return;
+                    }
                 }
             }
             dgvc.HeaderText = hText;

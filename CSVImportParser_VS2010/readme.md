@@ -27,10 +27,10 @@ For each import ways you may process data grid view control for errors in data, 
 1. обратиться к переменной формы "Data", в которой данные представленны типом DataTable с именоваными полями так, как они были сопоставлены. Исключая строки отмеченные "Игнор.".
 2. обратиться к переменной формы "EnumeratedData<T>". В ней содержится перечисления пользовательского типа <T>. При получении данных через эту переменную доступна предимпортная обработка данных через функцию-делегат, которая определяется в переменной "_preFormatFunction". Эта функция будет вызвана при обработке каждой строки таблицы с параметром названия сопоставленой колонки таблицы:
 
-public static void preImportFormat(ref object datavalue, string column)
+public static void preImportFormat(ref object datavalue, string columnName)
 {
-//processing datavalue
-//if datavalue is not matched template - set it null. In this case curent row of data grid will be skip from import
+//обработка datavalue
+//если datavalue не соответствует шаблону - установите его = null. В этом случае вся обрабатываемая строка будет пропущена и не будет импортирована.
 }
 
 При любом из выбранных способов данных можно задать функицю-делегат "_checkErrorsFunction" для предварительной проверки загруженых в DataGridView данных. Она будет вызвана после нажатия "ОК" и до закрытия формы. В параметрах функции передается ссылка на контрол DataGridView с загруженными данными и ссылка на контрол DataGridView в который будут выводиться ошибки. Если функция проверки ошибок вернет false - будет показаны сообщения об ошибках и форма импорта не будет закрыта.

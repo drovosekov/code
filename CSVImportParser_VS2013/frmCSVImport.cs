@@ -22,7 +22,7 @@ namespace CSVImportParser
         /// вызывается для предварительного форматирования элемента строки таблицы с импортируемыми данными
         /// чтоб подготовить данные к переводу в значения элементов класса
         /// </summary>
-        public delegate void PreFormatingRow(ref object datavalue, string datacolumns);
+        public delegate void PreFormatingRow(ref object datavalue, string columnName);
 
         /// <summary>
         /// вызывается после нажатия ОК. В случае возврата из ф-ии false - будет показано сообщение

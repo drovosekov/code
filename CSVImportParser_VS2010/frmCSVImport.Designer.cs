@@ -306,6 +306,7 @@ namespace CSVImportParser
             this.cmdCancel.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             this.cmdCancel.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.cmdCancel.Name = "cmdCancel";
+            this.cmdCancel.Overflow = System.Windows.Forms.ToolStripItemOverflow.Never;
             this.cmdCancel.Size = new System.Drawing.Size(73, 29);
             this.cmdCancel.Text = "Отмена";
             this.cmdCancel.Click += new System.EventHandler(this.cmdCancel_Click);
@@ -317,6 +318,7 @@ namespace CSVImportParser
             this.cmdOK.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             this.cmdOK.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.cmdOK.Name = "cmdOK";
+            this.cmdOK.Overflow = System.Windows.Forms.ToolStripItemOverflow.Never;
             this.cmdOK.Size = new System.Drawing.Size(61, 29);
             this.cmdOK.Text = "OK...";
             this.cmdOK.Click += new System.EventHandler(this.cmdOK_Click);

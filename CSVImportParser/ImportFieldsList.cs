@@ -22,16 +22,7 @@ namespace CSVImportParser
         }
 
         public string NotUsedColumnHeaderText { get; set; }
-
-        public ImportFieldsList()
-        {
-            _importFields.Add(new Fields()
-            {
-                HeaderText = NotUsedColumnHeaderText,
-                ClassFieldNameForSerelization = null
-            });
-        }
-
+        
         /// <summary>
         /// добавление в список импортируемых полей нового поля
         /// </summary>
@@ -43,7 +34,7 @@ namespace CSVImportParser
             _importFields.Add(new Fields()
             {
                 HeaderText = textHeader,
-                ClassFieldNameForSerelization = classFieldName,
+                FieldNameOfClassForSerelization = classFieldName,
                 Require = requiredField
             });
         }

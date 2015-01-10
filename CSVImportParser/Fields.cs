@@ -6,7 +6,7 @@ namespace CSVImportParser
     public class Fields : IEquatable<Fields> 
     {
         public string HeaderText { get; set; }
-        public string ClassFieldNameForSerelization { get; set; }
+        public string FieldNameOfClassForSerelization { get; set; }
         public bool Require { get; set; }
         public int ColumnIndex { get; set; }
 
@@ -18,7 +18,7 @@ namespace CSVImportParser
             var c = new Fields
             {
                 HeaderText = header,
-                ClassFieldNameForSerelization = name,
+                FieldNameOfClassForSerelization = name,
                 Require = req,
                 ColumnIndex = index
             };

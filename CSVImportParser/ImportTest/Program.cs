@@ -10,7 +10,7 @@ namespace ImportTest
         [STAThread]
         static void Main()
         {
-            using (var importFields = new ImportFieldsList())
+            using (var importFields = new ImportFieldsList() { })
             {
                 importFields.Add("Номер", "Number", true);
                 importFields.Add("Материал", "TypeObject", true); 

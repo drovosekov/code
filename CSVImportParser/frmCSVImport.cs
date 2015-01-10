@@ -104,7 +104,7 @@ namespace CSVImportParser
                 }
 
             }
-        } 
+        }
         public IEnumerable<T> EnumeratedData<T>() where T : class, new()
         {
             BeginProgress(Resources.Обработка, DGV_ImportData.Rows.Count);
@@ -176,7 +176,7 @@ namespace CSVImportParser
 
             return preList;
         }
-          
+
         public void SetCheck(CheckErrorsFunc check)
         {
             _checkErrorsFunction = check;
@@ -202,7 +202,7 @@ namespace CSVImportParser
             if (_checkErrorsFunction == null) { TabPages.TabPages.RemoveAt(2); }
             if (string.IsNullOrEmpty(_importTipsText)) { TabPages.TabPages.RemoveAt(0); }
 
-            if (ImportFields != null) ImportFields.NotUsedColumnHeaderText = Resources.НеИспольз;
+            if (ImportFields != null && string.IsNullOrEmpty(ImportFields.NotUsedColumnHeaderText)) ImportFields.NotUsedColumnHeaderText = Resources.НеИспольз;
 
             #region init default parser template
 
@@ -338,7 +338,7 @@ namespace CSVImportParser
         }
         private void HeaderMenuClick(object sender, EventArgs e)
         {
-            Fields fld = (Fields)((ToolStripMenuItem)sender).Tag;
+            var fld = (Fields)((ToolStripMenuItem)sender).Tag;
             DataGridViewColumn dgvc = DGV_ImportData.Columns[fld.ColumnIndex];
             var hText = fld.HeaderText.Replace("* ", "");
             if (hText != ImportFields.NotUsedColumnHeaderText)
@@ -351,25 +351,30 @@ namespace CSVImportParser
                 }
             }
             dgvc.HeaderText = hText;
-            dgvc.Name = fld.ClassFieldNameForSerelization;
-            dgvc.DataPropertyName = fld.ClassFieldNameForSerelization;
+            dgvc.Name = fld.FieldNameOfClassForSerelization;
+            dgvc.DataPropertyName = fld.FieldNameOfClassForSerelization;
         }
         private void GenerateContextMenu(int columnIndex)
         {
             HeaderContextMenu.Items.Clear();
+            HeaderContextMenu.Items.Add(ImportFields.NotUsedColumnHeaderText, null, HeaderMenuClick)
+                .Tag = new Fields()
+            {
+                ColumnIndex = columnIndex,
+                HeaderText = ImportFields.NotUsedColumnHeaderText
+            };
+
             foreach (Fields ifl in ImportFields.ImportFields)
             {
                 var menuHederText = ifl.HeaderText;
-                if (menuHederText != ImportFields.NotUsedColumnHeaderText && ColumnUsed(menuHederText)) continue;
+                if (ColumnUsed(menuHederText)) continue;
 
-                if (ifl.Require)
-                {
-                    menuHederText = String.Format("* {0}", menuHederText);
-                }
-                ToolStripItem itm = HeaderContextMenu.Items.Add(menuHederText, null, HeaderMenuClick);
+                if (ifl.Require) menuHederText = String.Format("* {0}", menuHederText);
                 ifl.ColumnIndex = columnIndex;
+
+                HeaderContextMenu.Items.Add(menuHederText, null, HeaderMenuClick)
                 //сохраняем инфу о элементе для последующего использования
-                itm.Tag = ifl;
+                    .Tag = ifl;
             }
         }
 

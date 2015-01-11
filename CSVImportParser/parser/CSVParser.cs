@@ -7,16 +7,13 @@ namespace CSVImportParser
     public class CSV : IDisposable
     {
         private string[] _textReader;
-        private readonly char[] _rowDelimeters = { '\r', '\n' };
         private char _columnDelimeter = ';';
         private const int MinColumnWidth = 110;
         private const int MaxPreviewLines = 50;
         private int _startLine;
-
-        public delegate void DataChanged(bool rebuildTable);
-        public event DataChanged OnDataChanged;
-        public delegate void ProgressChanged(int progressValue);
-        public event ProgressChanged OnProgressChanged;
+         
+        public event Action<bool> OnDataChanged;
+        public event Action<int> OnProgressChanged;
 
         public string Data
         {
@@ -26,7 +23,7 @@ namespace CSVImportParser
             }
             set
             {
-                _textReader = value.Split(_rowDelimeters, StringSplitOptions.RemoveEmptyEntries);
+                _textReader = value.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
                 if (OnDataChanged != null) { OnDataChanged(true); }
             }
         }
@@ -35,7 +32,7 @@ namespace CSVImportParser
         {
             get
             {
-                int len = (_textReader.Length > MaxPreviewLines) ? MaxPreviewLines : _textReader.Length;
+                var len = (_textReader.Length > MaxPreviewLines) ? MaxPreviewLines : _textReader.Length;
                 return string.Join(Environment.NewLine, _textReader, 0, len);
             }
         }
@@ -71,7 +68,7 @@ namespace CSVImportParser
             {
                 _startLine = value;
                 //только при изменении первой строки мы не перезагружаем данные в таблицу
-                if (OnDataChanged != null) { OnDataChanged(false); }
+                if (OnDataChanged != null) OnDataChanged(false);
             }
         }
 
@@ -88,7 +85,7 @@ namespace CSVImportParser
 
         public void FilleRowsTable(DataGridView dgv)
         {
-            for (int i = StartLine - 1; i < _textReader.Length; i++)
+            for (var i = _startLine - 1; i < _textReader.Length; i++)
             {
                 dgv.Rows.Add(_textReader[i].Split(_columnDelimeter));
                 if (i % 10 != 0) continue;

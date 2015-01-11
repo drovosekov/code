@@ -58,7 +58,7 @@ namespace CSVImportParser
             this.cmdCancel = new System.Windows.Forms.ToolStripButton();
             this.cmdOK = new System.Windows.Forms.ToolStripButton();
             this.SplitContainer1 = new System.Windows.Forms.SplitContainer();
-            this.DGV_ImportData = new CSVImportParser.DGV();
+            this.DGV_ImportData = new System.Windows.Forms.DataGridView();
             this.TabPages = new System.Windows.Forms.TabControl();
             this.TabPage_Tips = new System.Windows.Forms.TabPage();
             this.ImportTips = new System.Windows.Forms.TextBox();
@@ -545,7 +545,7 @@ namespace CSVImportParser
         internal System.Windows.Forms.ToolStripButton tbImportTemplate;
         internal System.Windows.Forms.ToolStripButton tbExportTemplate;
         internal System.Windows.Forms.SplitContainer SplitContainer1;
-        internal DGV DGV_ImportData;
+        internal DataGridView DGV_ImportData;
         internal System.Windows.Forms.StatusStrip CSV_StatusStrip;
         internal System.Windows.Forms.ToolStripStatusLabel ToolStripStatusLabel1;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
@@ -575,20 +575,5 @@ namespace CSVImportParser
         private DataGridViewTextBoxColumn ErrorNumber;
         private DataGridViewTextBoxColumn ClmnRowNum;
         private DataGridViewTextBoxColumn ErrorText;
-    }
-
-    public class DGV : System.Windows.Forms.DataGridView
-    {
-
-        public new void SuspendLayout()
-        {
-            base.SuspendLayout();
-            AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
-        }
-        public new void ResumeLayout()
-        {
-            base.ResumeLayout();
-            AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.DisplayedCells;
-        }
     }
 }

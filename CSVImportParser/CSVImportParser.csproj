@@ -53,10 +53,11 @@
     </CodeAnalysisDependentAssemblyPaths>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CommonFuncs.cs" />
-    <Compile Include="CSVParser.cs" />
+    <Compile Include="extensions\DGV.cs" />
+    <Compile Include="extensions\FormExt.cs" />
+    <Compile Include="parser\CSVParser.cs" />
     <Compile Include="ColumnInfo.cs" />
-    <Compile Include="Fields.cs" />
+    <Compile Include="parser\Fields.cs" />
     <Compile Include="frmCSVImport.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -69,6 +70,7 @@
     <Compile Include="frmProgress.Designer.cs">
       <DependentUpon>frmProgress.cs</DependentUpon>
     </Compile>
+    <Compile Include="extensions\MathExt.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ImportFieldsList.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
@@ -76,11 +78,12 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="xmlTemplateFile.cs" />
+    <Compile Include="parser\xmlTemplateFile.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="frmCSVImport.resx">
       <DependentUpon>frmCSVImport.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="frmProgress.resx">
       <DependentUpon>frmProgress.cs</DependentUpon>

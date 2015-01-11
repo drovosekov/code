@@ -29,7 +29,7 @@ namespace CSVImportParser
         /// о наличии ошибок в данных таблицы и предложение их исправить
         /// ошибки перечисляются в таблице DGV_ErrorTable (на форме в закладке "Анализ таблицы")
         /// </summary>
-        public delegate bool CheckErrorsFunc(ref DGV dgvSourceDataTable, ref  DataGridView dgvErrorTable);
+        public delegate bool CheckErrorsFunc(ref DataGridView dgvSourceDataTable, ref  DataGridView dgvErrorTable);
         #endregion
 
         #region private section
@@ -93,7 +93,7 @@ namespace CSVImportParser
                                                  where !row.IsNewRow && (row.Cells[0].Value == null || Convert.ToBoolean(row.Cells[0].Value) == false)//не игнор. строки
                                                  select Array.ConvertAll(row.Cells.Cast<DataGridViewCell>()
                                                           .Where(x => !string.IsNullOrEmpty(DGV_ImportData.Columns[x.ColumnIndex].DataPropertyName)) //только колонки с выбранным назначением
-                                                          .ToArray(), c => ((c.Value != null) ? c.Value.ToString() : ""));
+                                                          .ToArray(), c => ((c.Value != null) ? c.Value.ToString() : string.Empty));
 
                     foreach (object[] row in rows)
                     {
@@ -112,7 +112,8 @@ namespace CSVImportParser
             Collection<T> preList = new Collection<T>();
             bool skip = false;
 
-            ColumnInfo[] settedcolumns = DGV_ImportData.Columns.Cast<DataGridViewColumn>()
+            ColumnInfo[] settedcolumns = DGV_ImportData.Columns
+                .Cast<DataGridViewColumn>()
                 .Where(x => !string.IsNullOrEmpty(x.DataPropertyName))
                 .Select(x => new ColumnInfo()
                 {
@@ -123,55 +124,53 @@ namespace CSVImportParser
 
             foreach (DataGridViewRow dgvRow in DGV_ImportData.Rows)
             {
-                if (Convert.ToBoolean(dgvRow.Cells[0].Value) == false)//только не игнор. строки
+                if (Convert.ToBoolean(dgvRow.Cells[0].Value)) continue;
+
+                var obj = new T();
+
+                foreach (ColumnInfo dc in settedcolumns)
                 {
-                    var obj = new T();
-
-                    foreach (ColumnInfo dc in settedcolumns)
+                    try
                     {
-                        try
+                        PropertyInfo propertyInfo = obj.GetType().GetProperty(dc.DataPropertyName);
+                        if (propertyInfo == null) continue;
+
+                        object v = dgvRow.Cells[dc.Index].Value;
+                        if (_preFormatFunction != null)
                         {
-                            PropertyInfo propertyInfo = obj.GetType().GetProperty(dc.DataPropertyName);
-                            if (propertyInfo == null) continue;
-
-                            object v = dgvRow.Cells[dc.Index].Value;
-                            if (_preFormatFunction != null)
+                            _preFormatFunction(ref v, dc.DataPropertyName);
+                            if (v == null)
                             {
-                                _preFormatFunction(ref v, dc.DataPropertyName);
-                                if (v == null)
-                                {
-                                    skip = true;
-                                    break;
-                                }
+                                skip = true;
+                                break;
                             }
-                            if (v == null) continue;
-
-                            if (CommonFuncs.IsFloatNumeric(v.ToString()))
-                            {
-                                v = CommonFuncs.GetDecimal(v.ToString());
-                            }
-
-                            //serelize csv cell data to class 
-                            propertyInfo.SetValue(obj, TargetType(v, propertyInfo), null);
                         }
-                        catch //(Exception ex)
+                        if (v == null) continue;
+
+                        if (v.IsFloatNumeric())
                         {
-                            //MessageBox.Show(ex.Message);
+                            v = v.GetDecimal();
                         }
+
+                        //serelize csv cell data to class 
+                        propertyInfo.SetValue(obj, TargetType(v, propertyInfo), null);
                     }
-                    if (!skip)
+                    catch (Exception ex)
                     {
-                        preList.Add(obj);
-                    }
-                    else
-                    {
-                        skip = false;
+                        MessageBox.Show(ex.Message);
                     }
                 }
+                if (!skip)
+                {
+                    preList.Add(obj);
+                }
+                else
+                {
+                    skip = false;
+                }
+
                 if (dgvRow.Index % 10 == 0)
-                {
                     OnProgressChanged(dgvRow.Index);
-                }
             }
 
             return preList;
@@ -191,18 +190,20 @@ namespace CSVImportParser
         {
             InitializeComponent();
 
-            CommonFuncs.LoadFormPositionAndSize(this);
+            this.LoadFormPositionAndSize();
 
-            object dist = Registry.GetValue(CommonFuncs.GetRegistryPathForFormSettings(Name), "SplitterDistance", null);
+            object dist = Registry.GetValue(FormExt.GetRegistryPathForFormSettings(Name), "SplitterDistance", null);
             SplitContainer1.SplitterDistance = (dist == null) ? SplitContainer1.SplitterDistance : Convert.ToInt32(dist);
-
         }
         private void frmCSVImport_Load(object sender, EventArgs e)
         {
             if (_checkErrorsFunction == null) { TabPages.TabPages.RemoveAt(2); }
             if (string.IsNullOrEmpty(_importTipsText)) { TabPages.TabPages.RemoveAt(0); }
 
-            if (ImportFields != null && string.IsNullOrEmpty(ImportFields.NotUsedColumnHeaderText)) ImportFields.NotUsedColumnHeaderText = Resources.НеИспольз;
+            if (ImportFields != null && string.IsNullOrEmpty(ImportFields.NotUsedColumnHeaderText))
+            {
+                ImportFields.NotUsedColumnHeaderText = Resources.НеИспольз;
+            }
 
             #region init default parser template
 
@@ -233,9 +234,9 @@ namespace CSVImportParser
         }
         private void frmCSVImport_FormClosed(object sender, FormClosedEventArgs e)
         {
-            CommonFuncs.SaveFormPositionAndSize(this);
+            this.SaveFormPositionAndSize();
 
-            Registry.SetValue(CommonFuncs.GetRegistryPathForFormSettings(Name), "SplitterDistance", SplitContainer1.SplitterDistance);
+            Registry.SetValue(FormExt.GetRegistryPathForFormSettings(Name), "SplitterDistance", SplitContainer1.SplitterDistance);
         }
 
         #region отрисовка прогресса
@@ -293,9 +294,7 @@ namespace CSVImportParser
                 });
 
                 if (rebuild)
-                {
                     LoadImportTemplate(TemplateDefaultPath);
-                }
             }
             catch (Exception ex)
             {
@@ -340,10 +339,12 @@ namespace CSVImportParser
         {
             var fld = (Fields)((ToolStripMenuItem)sender).Tag;
             DataGridViewColumn dgvc = DGV_ImportData.Columns[fld.ColumnIndex];
-            var hText = fld.HeaderText.Replace("* ", "");
+            var hText = fld.HeaderText.Replace("* ", string.Empty);
             if (hText != ImportFields.NotUsedColumnHeaderText)
             {
-                foreach (DataGridViewColumn col in DGV_ImportData.Columns.Cast<DataGridViewColumn>().Where(col => col.HeaderText == hText))
+                foreach (DataGridViewColumn col in DGV_ImportData.Columns
+                                                        .Cast<DataGridViewColumn>()
+                                                        .Where(col => col.HeaderText == hText))
                 {
                     col.HeaderText = ImportFields.NotUsedColumnHeaderText;
                     col.DataPropertyName = null;
@@ -373,7 +374,7 @@ namespace CSVImportParser
                 ifl.ColumnIndex = columnIndex;
 
                 HeaderContextMenu.Items.Add(menuHederText, null, HeaderMenuClick)
-                //сохраняем инфу о элементе для последующего использования
+                    //сохраняем инфу о элементе для последующего использования
                     .Tag = ifl;
             }
         }
@@ -391,18 +392,20 @@ namespace CSVImportParser
         {
             txtSourceDataFile.Enabled = false;
             SCV_ToolStripMain.Enabled = false;
-            DGV_ImportData.SuspendLayout();
+            DGV_ImportData.Freeze();
         }
         private void ResumeDGV()
         {
             txtSourceDataFile.Enabled = true;
             SCV_ToolStripMain.Enabled = true;
-            DGV_ImportData.ResumeLayout();
+            DGV_ImportData.UnFreeze();
         }
         private void tblDeleteSelectedRows_Click(object sender, EventArgs e)
         {
             SuspendDGV();
-            foreach (DataGridViewRow row in DGV_ImportData.SelectedRows.Cast<DataGridViewRow>().Where(row => !row.IsNewRow))
+            foreach (DataGridViewRow row in DGV_ImportData.SelectedRows
+                                                .Cast<DataGridViewRow>()
+                                                .Where(row => !row.IsNewRow))
             {
                 DGV_ImportData.Rows.RemoveAt(row.Index);
             }
@@ -430,7 +433,7 @@ namespace CSVImportParser
             {
                 if (csvSaveFileDialog.ShowDialog() == DialogResult.Cancel) { return; }
 
-                using (var xmlDoc = new XmlTemplateFile(""))
+                using (var xmlDoc = new XmlTemplateFile(string.Empty))
                 {
                     xmlDoc.AddNode("CSVImportTemplate");
                     xmlDoc.AddNode("Separator", txtDelimeter.Text);
@@ -456,7 +459,7 @@ namespace CSVImportParser
                     Filter = Resources.ФайлыШаблоновИмпортаImportxImportx,
                     FilterIndex = 2,
                     InitialDirectory = string.Empty,
-                    FileName = ""
+                    FileName = string.Empty
                 })
             {
                 if (templateOpenFileDialog.ShowDialog() == DialogResult.Cancel) { return; }
@@ -480,25 +483,41 @@ namespace CSVImportParser
                         Filter = Resources.ФильтрФайловCSV,
                         FilterIndex = 2,
                         InitialDirectory = string.Empty,
-                        FileName = ""
+                        FileName = string.Empty
                     })
                 {
                     if (csvSaveFileDialog.ShowDialog(this) == DialogResult.Cancel) { return; }
 
-                    using (StreamWriter sw = new StreamWriter(csvSaveFileDialog.FileName, false, Encoding.Default))
+                    using (var sw = new StreamWriter(csvSaveFileDialog.FileName, false, Encoding.Default))
                     {
                         var delim = _parser.ColumnsDelimeter.ToString();
-                        sw.WriteLine(string.Join(delim, (from DataGridViewColumn clm in DGV_ImportData.Columns.Cast<DataGridViewColumn>()
-                                                         select clm.HeaderText).ToArray()).Replace(Resources.Игнор, "").Substring(1));
+                        sw.WriteLine(string.Join(delim, (DGV_ImportData.Columns
+                                                            .Cast<DataGridViewColumn>()
+                                                            .Select(clm => clm.HeaderText))
+                                                            .ToArray())
+                                              .Replace(Resources.Игнор, string.Empty)
+                                              .Substring(1));
 
-                        //выбираем только не игнорируемые строки 
-                        IEnumerable<string[]> rows = from DataGridViewRow row in DGV_ImportData.Rows.Cast<DataGridViewRow>()
-                                                     where !row.IsNewRow && (row.Cells[0].Value == null || Convert.ToBoolean(row.Cells[0].Value) == false)
-                                                     select Array.ConvertAll(row.Cells.Cast<DataGridViewCell>().ToArray(), c => ((c.Value != null) ? c.Value.ToString() : ""));
+                        //выбираем только не игнорируемые строки без первого столбца "Игнор"
+                        IEnumerable<string[]> rows =
+                            DGV_ImportData.Rows
+                                .Cast<DataGridViewRow>()
+                                .Where(
+                                    row =>
+                                        !row.IsNewRow &&
+                                        (row.Cells[0].Value == null || Convert.ToBoolean(row.Cells[0].Value) == false))
+                                .Select(
+                                    row =>
+                                        Array.ConvertAll(row.Cells
+                                                                .Cast<DataGridViewCell>()
+                                                                .Where(c => c.ColumnIndex > 0)
+                                                                .ToArray(),
+                                            c => ((c.Value != null) ? c.Value.ToString() : string.Empty)));
 
                         foreach (string[] r in rows)
                         {
-                            sw.WriteLine(string.Join(delim, r).Replace("False", "").Substring(1));
+                            //строки без первой колонки "игнор", которая в нашем случае будет всегда = False
+                            sw.WriteLine(string.Join(delim, r));
                         }
                     }
                 }
@@ -523,7 +542,7 @@ namespace CSVImportParser
                     Filter = _importFilter,
                     FilterIndex = 2,
                     InitialDirectory = string.Empty,
-                    FileName = ""
+                    FileName = string.Empty
                 })
                 {
                     if (csvOpenFileDialog.ShowDialog() == DialogResult.Cancel) { return; }
@@ -551,7 +570,7 @@ namespace CSVImportParser
         {
             try
             {
-                Clipboard.SetDataObject(DGV_ImportData.GetClipboardContent());
+                if (DGV_ImportData != null) Clipboard.SetDataObject(DGV_ImportData.GetClipboardContent());
             }
             catch (ExternalException ex)
             {
@@ -583,7 +602,7 @@ namespace CSVImportParser
                     {
                         throw new NotSupportedException(Resources.ВыбранныйШаблонИмпортаНеПодходитКЗагруженн);
                     }
-                    for (int i = 0; i < columns.Length; i++)
+                    for (var i = 0; i < columns.Length; i++)
                     {
                         if (ImportFields.Contains(columns[i].HeaderText))
                         {

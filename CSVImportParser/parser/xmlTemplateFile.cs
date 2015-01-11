@@ -27,7 +27,7 @@ namespace CSVImportParser
                 .Cast<XmlNode>()
                 .Select(x => new ColumnInfo()
                 {
-                    HeaderText = x.Attributes != null && x.Attributes.Count == 0 ? string.Empty : x.Attributes.GetNamedItem("HeaderText").Value,
+                    HeaderText = (x.Attributes != null && x.Attributes.Count == 0) ? string.Empty : x.Attributes.GetNamedItem("HeaderText").Value,
                     DataPropertyName = x.Attributes.Count == 0 ? string.Empty : x.Attributes.GetNamedItem("RealName").Value
                 })
                 .ToArray();
@@ -47,7 +47,7 @@ namespace CSVImportParser
             }
         }
 
-        public void AddNode(string tagName, string text = null, bool setNewAsParentNode = false)
+        public void AddNode(string tagName, string text = "", bool setNewAsParentNode = false)
         {
             XmlNode newNode = _xmlDoc.CreateNode(XmlNodeType.Element, tagName, null);
             newNode.InnerText = text;

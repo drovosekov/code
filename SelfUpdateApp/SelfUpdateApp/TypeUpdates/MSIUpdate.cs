@@ -1,30 +1,28 @@
 ﻿using System;
 using System.IO;
-using System.Runtime.Serialization;
 
 namespace SelfUpdateApp.TypeUpdates
 {
-    public class MSIUpdate : ServerUpdateFile 
+    public class MsiUpdate : ServerUpdateFile
     {
-        public MSIUpdate()
-            : this(string.Empty)
+        public MsiUpdate()
+            : this(string.Empty) { }
+
+        public MsiUpdate(string fileName)
+            : base(fileName) { }
+
+        public override bool Install()
         {
-        }
-        public MSIUpdate(string fullFileName)
-            : base(fullFileName)
-        {
+            FileNameOnServer = FileNameOnServer;
+            return true;
         }
 
-        public override DateTime FileCreationDateTime 
+        public override DateTime FileCreationDateTime
         {
-            get { return File.GetCreationTime(FullFileName); }
-            set { throw new NotImplementedException(); }
+            get { return File.GetCreationTimeUtc(FileNameOnServer); }
+            set { }
         }
 
-        public override string Hash
-        {
-            get { throw new NotImplementedException(); }
-            set { throw new NotImplementedException(); }
-        }
+        public override string Hash { get; set; }
     }
 }

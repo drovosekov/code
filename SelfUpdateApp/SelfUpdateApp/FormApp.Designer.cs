@@ -139,7 +139,7 @@
             this.lblCheckUpdates.TabIndex = 6;
             this.lblCheckUpdates.Text = "Нет обновлений";
             // 
-            // Form
+            // FormApp
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -152,10 +152,9 @@
             this.Controls.Add(this.toolStrip1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.MaximizeBox = false;
-            this.Name = "Form";
+            this.Name = "FormApp";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Программа";
-            this.TopMost = true;
             this.Load += new System.EventHandler(this.Form_Load);
             this.toolStrip1.ResumeLayout(false);
             this.toolStrip1.PerformLayout();

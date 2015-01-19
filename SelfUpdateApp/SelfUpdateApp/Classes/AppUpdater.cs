@@ -4,156 +4,110 @@ using System.Xml;
 using System.Net;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using System.Xml.Serialization;
+using SelfUpdateApp.Protocols;
 using SelfUpdateApp.settings;
+using SelfUpdateApp.TypeUpdates;
 
 namespace SelfUpdateApp
 {
-    public class AppUpdater
+    public class AppUpdater : IDisposable
     {
         public string ErrorMessage;
-        public string UpdateInfoFileName;
-        public string ServerAddr;
-        public bool CheckOnlyHash; 
-        //массив задач на ассинхронное скачивание файлов с сервера обновлений
-        private Task[] _ts = new Task[0];
+        private ServerProtocol _serverProtocol;
+        private readonly string _localInfoFilePath = CommonFunctions.GetAppLocalUpdateInfoFilePath;
 
-        /// <summary>
-        /// если в файле настроек ключ CheckOnlyHash=true - то все файлы сравниваются только по хешу (более надежно)
-        /// в не зависимости от этойнастройки - все файлы, у которых нельзя проверить версию файла (например текстовые)
-        /// сравниваются только по изменению хеша файла
-        /// </summary>
-        
-        public bool Check()
+        public AppUpdater(ServerProtocol infoUpdateFile)
         {
-            Task.Factory.StartNew(() =>
-                //скачиваем файл описания обновлений (версия файла, имя файла, контр. сумма)
-                 DownloadFile(UpdateInfoFileName)
-            ).Wait();
-
-            var infoFilePath = Path.Combine(CommonFunctions.GetAppUpdatePath, UpdateInfoFileName);
-            if (!File.Exists(infoFilePath)) return false;
-
-            /*using (var info = new XmlInfoFile(infoFilePath))
-            {
-                foreach (XmlNode xmlNode in info.GetByTag("Element"))
-                {
-                    var fileName = xmlNode.SelectSingleNode("FileName").InnerText;
-                    var filePath = Path.Combine(CommonFunctions.GetAppFullPath, fileName);
-
-                    string updateFilePath;
-                    if (!File.Exists(filePath))
-                    {
-                        updateFilePath = Path.Combine(CommonFunctions.GetAppUpdatePath, fileName);
-                        if (!File.Exists(updateFilePath))
-                        {
-                            //файла нет вообще - качаем его
-                            NewDownloadTask(fileName);
-                        }
-                        else
-                        {
-                            //файл уже скачан и ждет обновления 
-                            //если он отличается от серверного - качаем снова
-                            if (CheckFile(xmlNode, updateFilePath))
-                            {
-                                NewDownloadTask(fileName);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        updateFilePath = Path.Combine(CommonFunctions.GetAppUpdatePath, fileName);
-                        if (File.Exists(updateFilePath))
-                        {
-                            //файл уже скачан и ждет обновления 
-                            //если он отличается от серверного - качаем снова
-                            if (CheckFile(xmlNode, updateFilePath))
-                            {
-                                NewDownloadTask(fileName);
-                            }
-                        }
-                        else
-                        {
-                            //если после проверки локального фала его хеш или версия отличаются
-                            //от записанной в файле описания обновлений - качаем в папку обновлений
-                            if (CheckFile(xmlNode, filePath))
-                            {
-                                NewDownloadTask(fileName);
-                            }
-                        }
-                    }
-                }
-                if (_ts.Length <= 0) return false;
-                //ждем завершения всех заданий скачивания файлов
-                Task.WaitAll(_ts);
-                return true;
-            }*/
-
-            return false;
+            _serverProtocol = infoUpdateFile;
         }
 
         /// <summary>
-        /// проверяем файл на сервере с локальным файлом по версии файла или хешу файла
+        /// 
         /// </summary>
-        /// <param name="xmlNode">ветка в файле описания обновлений содежащия инфо о версии и хеше файла</param>
-        /// <param name="filePath">путь к файлу версию которого надо проверить</param> 
-        /// <returns>в случае отличия или с меньшей версией локального файла от серверного - true</returns>
-        private bool CheckFile(XmlNode xmlNode, string filePath)
-        {
-            var hash = CommonFunctions.GetHashFile(filePath);
-            
-            FileVersionInfo versionInfo = FileVersionInfo.GetVersionInfo(filePath);
 
-            if (versionInfo.FileVersion == null || CheckOnlyHash)
+        public async void Check(Action<bool> checkResult)
+        {
+            if (checkResult == null) throw new Exception("Не задан делегат CheckResult");
+
+            //if (File.Exists(_localInfoFilePath))
+            //{
+            //    DateTime fileCreationTime = _serverProtocol.FileOnServerCreationDateTime;
+            //    //if (DateTime.Compare(fileCreationTime, File.GetLastWriteTimeUtc(_localInfoFilePath)) <= 0)  {
+            //    checkResult(false);
+            //    return;
+            //    //}
+            //}
+
+            //if (await Task<bool>.Factory
+            //            .StartNew(() => _serverProtocol.DownloadFileTo(_localInfoFilePath)) == false)
+            //{
+            //    Log(_serverProtocol.ErrorMessage);
+            //    checkResult(false);
+            //    return;
+            //};
+
+            UpdateInfoManifest filesForUpdateInfo;
+            using (FileStream fs = File.Open(_localInfoFilePath, FileMode.Open, FileAccess.Read))
             {
-                //для не ехе, dll файлов проверяем хеш файла
-                XmlNode selectSingleNode = xmlNode.SelectSingleNode("HASH");
-                if (selectSingleNode != null && hash != selectSingleNode.InnerText)
+                byte[] buffer = new byte[fs.Length];
+                fs.Read(buffer, 0, (int)fs.Length);
+                var xmlSerializer = new XmlSerializer(typeof(UpdateInfoManifest));
+                using (Stream stream = new MemoryStream(buffer))
                 {
-                    return true;
+                    filesForUpdateInfo = (UpdateInfoManifest)xmlSerializer.Deserialize(stream);
                 }
+            }
+
+            switch (filesForUpdateInfo.UpdateFilesList.Count)
+            {
+                case 0:
+                    checkResult(false);
+                    return;
+                case 1:
+                    DownloadFileForUpdate(filesForUpdateInfo.UpdateFilesList[0]);
+                    break;
+                default:
+                    filesForUpdateInfo.UpdateFilesList.Sort();
+                    Parallel.ForEach(filesForUpdateInfo.UpdateFilesList, DownloadFileForUpdate);
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// проверяем файл на сервере с локальным файлом по хешу файла
+        /// </summary>
+        /// <param name="upd">информация о файле на сервере обновлений</param>
+        private async void DownloadFileForUpdate(ServerUpdateFile upd)
+        {
+            var localFilePath = Path.Combine(CommonFunctions.GetAppDirectoryPath, ServerUpdateFile.UpdateFolderPath, upd.FileNameOnServer);
+
+            //если файл уже скачан и хеш совпадает - не качаем его и не устанавливаем
+            if (File.Exists(localFilePath) &&
+                localFilePath.GetHashFile() == upd.Hash) return;
+            
+            if (await Task<bool>.Factory
+                .StartNew(() => _serverProtocol.DownloadFile(upd.FileNameOnServer, localFilePath)))
+            {
+                await Task<bool>.Factory
+                    .StartNew(upd.Install);
+
+                Log(upd.ErrorMessage);
             }
             else
             {
-                //у всех ехе, dll файлов проверяем фактическую версию
-                var fileVersion = new Version(versionInfo.FileVersion);
-                XmlNode selectSingleNode = xmlNode.SelectSingleNode("Version");
-                if (selectSingleNode == null) return false;
-
-                var remoteVersion = new Version(selectSingleNode.InnerText);
-                if (remoteVersion > fileVersion) return true;
+                Log(_serverProtocol.ErrorMessage);
             }
-            return false;
         }
 
-        /// <summary>
-        /// создаем новую задачу на скачивание файла
-        /// </summary>
-        /// <param name="fileName">путь к скачиваемому с сревера обновлений файла</param> 
-        private void NewDownloadTask(string fileName)
+        private void Log(string message)
         {
-            Array.Resize(ref _ts, _ts.Length + 1);
-            _ts[_ts.Length - 1] = Task.Factory.StartNew(() =>
-                DownloadFile(fileName)
-            );
+            ErrorMessage += message + Environment.NewLine;
         }
 
-        private void DownloadFile(string fileNameToDownload)
+        public void Dispose()
         {
-            try
-            {
-                using (var client = new WebClient())
-                {
-                    var localFilePath = String.Format("{0}{1}", CommonFunctions.GetAppUpdatePath, fileNameToDownload);
-                    if (!Directory.Exists(localFilePath)) { Directory.CreateDirectory(Path.GetDirectoryName(localFilePath)); }
-                    if (File.Exists(localFilePath)) { File.Delete(localFilePath); }
-                    client.DownloadFile(new Uri(String.Format("http://{0}/{1}", ServerAddr, fileNameToDownload)),
-                                        localFilePath);
-                }
-            }
-            catch (Exception ex)
-            {
-                ErrorMessage = ex.Message;
-            }
+            _serverProtocol = null;
         }
     }
 }

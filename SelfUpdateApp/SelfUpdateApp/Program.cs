@@ -7,7 +7,6 @@ using System.Xml.Serialization;
 using SelfUpdateApp.Protocols;
 using SelfUpdateApp.settings;
 using SelfUpdateApp.TypeUpdates;
-using setings = SelfUpdateApp.settings.SettingsController;
 
 namespace SelfUpdateApp
 {
@@ -19,41 +18,57 @@ namespace SelfUpdateApp
         [STAThread]
         static void Main()
         {
-            var sett = new SettingsController(CommonFunctions.GetSettingsFilePath, new SMBServer())
-            {
-                IntervalCheckUpdate = 5000,
-                ServerFileAdress = @"обмен\UpdateInfo.xml",
-                ServerLogin = @"Dev-vs13\user",
-                ServerPassword = "123",
-                ServerName = @"\\Dev-vs13"
-            };
-            //sett.Save();
-            //sett.Save();
+                #region создвание файла настроек
 
-            sett.Server.DownloadFile(CommonFunctions.GetAppUpdatePath + "UpdateInfo.xml");
-
-            var file = new ExistingFile(CommonFunctions.GetAppFullPath);
-
-            var list = new OnServerFilesList
-            {
-                FilesList = new List<ServerUpdateFile> { file },
-                UpdatedTimeStamp = String.Format("{0} - {1}", DateTime.Now.ToLongDateString(), DateTime.Now.ToLongTimeString()),
-                UpdateUrl = @"C:\update\"
-            };
-
-            var xmlSerializer = new XmlSerializer(typeof(OnServerFilesList));
-
-            using (var ms = new MemoryStream())
-            {
-                xmlSerializer.Serialize(ms, list);
-                byte[] wayPoints = ms.GetBuffer();
-
-                wayPoints = wayPoints.Where(x => x != 0).ToArray(); //убираем лишние нули взятые из буфера
-
-                using (FileStream fs = File.Open(file.FullFileName + ".xml", FileMode.Create))
+                var sett = new SettingsController(CommonFunctions.GetSettingsFilePath, new SmbServer())
                 {
-                    fs.Write(wayPoints, 0, wayPoints.Length);
+                    IntervalCheckUpdate = 5000,
+                    ServerLogin = @"Dev-vs13\user",
+                    ServerPassword = "123",
+                    ServerName = @"\\Dev-vs13",
+                    ServerFileAdress = @"UpdateInfo.xml",
+                    ShareName = "обмен"
+                };
+                sett.Save();
+                //sett.Save();
+
+                sett.Server.DownloadFileTo(CommonFunctions.GetAppLocalUpdateInfoFilePath);
+
+                #endregion
+
+            if (false)
+            {
+                #region создание файла описания обновлений
+
+                var file = new RawFile(CommonFunctions.GetAppFullPath);
+
+                var list = new UpdateInfoManifest
+                {
+                    UpdateFilesList = new List<ServerUpdateFile> {file},
+                    UpdatedTimeStamp =
+                        String.Format("{0} - {1}", DateTime.UtcNow.ToLongDateString(),
+                            DateTime.UtcNow.ToLongTimeString())
+                };
+
+                var xmlSerializer = new XmlSerializer(typeof (UpdateInfoManifest));
+
+                using (var ms = new MemoryStream())
+                {
+                    xmlSerializer.Serialize(ms, list);
+                    byte[] wayPoints = ms.GetBuffer();
+
+                    wayPoints = wayPoints
+                        .Where(x => x != 0)
+                        .AsParallel()
+                        .ToArray(); //убираем лишние нули взятые из буфера
+
+                    using (FileStream fs = File.Open(CommonFunctions.GetAppLocalUpdateInfoFilePath, FileMode.Create))
+                    {
+                        fs.Write(wayPoints, 0, wayPoints.Length);
+                    }
                 }
+
+                #endregion
             }
 
             Application.EnableVisualStyles();

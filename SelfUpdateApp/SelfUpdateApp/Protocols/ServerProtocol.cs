@@ -6,8 +6,8 @@ using SelfUpdateApp.settings.properties;
 namespace SelfUpdateApp.Protocols
 {
     [DataContract]
-    [KnownType(typeof(RestServer)), KnownType(typeof(SMBServer))]
-    [XmlInclude(typeof(RestServer)), XmlInclude(typeof(SMBServer))]
+    [KnownType(typeof(RestServer)), KnownType(typeof(SmbServer))]
+    [XmlInclude(typeof(RestServer)), XmlInclude(typeof(SmbServer))]
     public abstract class ServerProtocol : IGetFile
     {
         private static PropertyDescriptionString _serverName = new PropertyDescriptionString("Адрес сервера обновлений");
@@ -16,12 +16,19 @@ namespace SelfUpdateApp.Protocols
             get { return _serverName; }
             set { _serverName = value; }
         }
-        
+
         private PropertyDescriptionString _serverFileAdress = new PropertyDescriptionString("Путь к файлу на сервере");
         public PropertyDescriptionString ServerFileAdress
         {
             get { return _serverFileAdress; }
             set { _serverFileAdress = value; }
+        }
+
+        private PropertyDescriptionString _shareName = new PropertyDescriptionString("Название сетевого ресурса (например сетевой папки)");
+        public PropertyDescriptionString ShareName
+        {
+            get { return _shareName; }
+            set { _shareName = value; }
         }
 
         private static PropertyDescriptionString _serverLogin = new PropertyDescriptionString("Логин для доступа к серверу");
@@ -38,12 +45,17 @@ namespace SelfUpdateApp.Protocols
             set { _serverPassword = value; }
         }
 
-        public abstract bool DownloadFile(string destinationFullFileName);
+        public bool DownloadFile(string sourceFileNameOnServer, string destinationFullFileName)
+        {
+            ServerFileAdress.Value = sourceFileNameOnServer;
+            return DownloadFileTo(destinationFullFileName);
+        }
 
-        [DataMember]
-        public abstract DateTime FileCreationDateTime { get; set; }
+        public abstract bool DownloadFileTo(string destinationFullFileName);
+         
+        public abstract DateTime FileOnServerCreationDateTime { get; }
 
-        [DataMember]
-        public string ErrorMessage { get; set; }
+        [XmlIgnore, IgnoreDataMember]
+        public string ErrorMessage { get; protected set; }
     }
 }

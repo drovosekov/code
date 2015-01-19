@@ -9,7 +9,7 @@ namespace SelfUpdateApp.Protocols
     [DataContract]
     public class RestServer : ServerProtocol
     {
-        public override DateTime FileCreationDateTime
+        public override DateTime FileOnServerCreationDateTime
         {
             get
             {
@@ -28,10 +28,9 @@ namespace SelfUpdateApp.Protocols
                     return DateTime.MinValue;
                 }
             }
-            set { }
         }
 
-        public override  bool DownloadFile(string fullFileName)
+        public override  bool DownloadFileTo(string fullFileName)
         {
             try
             {

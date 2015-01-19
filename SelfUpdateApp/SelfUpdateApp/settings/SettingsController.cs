@@ -94,6 +94,11 @@ namespace SelfUpdateApp.settings
             get { return Properties.ServerInfo.ServerName.Value; }
             set { Properties.ServerInfo.ServerName.Value = value; }
         }
+        public string ShareName
+        {
+            get { return Properties.ServerInfo.ShareName.Value; }
+            set { Properties.ServerInfo.ShareName.Value = value; }
+        }
 
         public string ServerFileAdress
         {

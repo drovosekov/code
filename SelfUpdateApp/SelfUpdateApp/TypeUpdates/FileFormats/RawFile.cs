@@ -2,15 +2,11 @@
 using System.IO;
 using SelfUpdateApp.settings;
 
-namespace SelfUpdateApp.TypeUpdates
+namespace SelfUpdateApp.TypeUpdates.FileFormats
 {
     public class RawFile : ServerUpdateFile
     {
-        public RawFile()
-            : this("") { }
-
-        public RawFile(string fileName)
-            : base(fileName) { }
+        public RawFile() { }
 
         public override bool Install()
         {

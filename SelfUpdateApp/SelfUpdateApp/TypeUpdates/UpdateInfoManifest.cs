@@ -1,19 +1,22 @@
-﻿using System.Collections.Generic;
-using System.Runtime.Serialization;
+﻿using System.Collections.Generic; 
 using System.Xml.Serialization;
+using SelfUpdateApp.TypeUpdates.FileFormats;
 
 namespace SelfUpdateApp.TypeUpdates
 {
-    [DataContract]
-    [XmlInclude(typeof(ZipArchiveFile)), KnownType(typeof(ZipArchiveFile))]
-    [XmlInclude(typeof(MsiUpdate)), KnownType(typeof(MsiUpdate))]
-    [XmlInclude(typeof(RawFile)), KnownType(typeof(RawFile))]
+    [XmlRoot]
+    [XmlInclude(typeof(ZipArchiveFile))]
+    [XmlInclude(typeof(MsiUpdate))]
+    [XmlInclude(typeof(RawFile))]
     public class UpdateInfoManifest
     {
-        [DataMember]
+        [XmlElement]
         public string UpdatedTimeStamp { get; set; }
-        
-        [DataMember]
+
+        [XmlElement]
+        public string UpdatedDescription { get; set; }
+
+        [XmlElement]
         public List<ServerUpdateFile> UpdateFilesList { get; set; }
     } 
 }

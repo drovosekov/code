@@ -8,6 +8,7 @@ using System.Xml.Serialization;
 using SelfUpdateApp.Protocols;
 using SelfUpdateApp.settings;
 using SelfUpdateApp.TypeUpdates;
+using SelfUpdateApp.TypeUpdates.FileFormats;
 
 namespace SelfUpdateApp
 {

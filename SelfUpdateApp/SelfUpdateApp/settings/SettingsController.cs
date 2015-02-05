@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
-using System.Runtime.Serialization;
+using System.Linq; 
 using System.Windows.Forms;
 using System.Xml.Serialization;
 using SelfUpdateApp.Protocols;
@@ -12,32 +11,38 @@ namespace SelfUpdateApp.settings
     {
         private AppSettings Properties { get; set; }
 
-        public SettingsController()
-            : this(string.Empty , null)
+        public SettingsController(string settingsFilePath)
         {
-            //пустой конструктор без параметров нужен для серилизации
-        }
-        public SettingsController(string settingsFilePath, ServerProtocol typeServer = null)
-        {
-            if (string.IsNullOrEmpty(settingsFilePath)) return;
+            if (string.IsNullOrEmpty(settingsFilePath)) throw new Exception("Не задан путь к файлу настроек");
             SettingsFilePath = settingsFilePath;
 
             if (!File.Exists(settingsFilePath))
             {
                 Properties = new AppSettings();
-                Server = typeServer;
                 return;
             }
 
-            using (FileStream fs = File.Open(SettingsFilePath, FileMode.Open, FileAccess.Read))
+            Load();
+        }
+
+        public void Load()
+        {
+            try
             {
-                byte[] buffer = new byte[fs.Length];
-                fs.Read(buffer, 0, (int)fs.Length);
-                var xmlSerializer = new XmlSerializer(typeof(AppSettings));
-                using (Stream stream = new MemoryStream(buffer))
+                using (FileStream fs = File.Open(SettingsFilePath, FileMode.Open, FileAccess.Read))
                 {
-                    Properties = (AppSettings)xmlSerializer.Deserialize(stream);
+                    byte[] buffer = new byte[fs.Length];
+                    fs.Read(buffer, 0, (int) fs.Length);
+                    var xmlSerializer = new XmlSerializer(typeof (AppSettings));
+                    using (Stream stream = new MemoryStream(buffer))
+                    {
+                        Properties = (AppSettings) xmlSerializer.Deserialize(stream);
+                    }
                 }
+            }
+            catch (Exception sex)
+            {
+                MessageBox.Show(sex.InnerException.Message, @"Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
         }
 
@@ -48,7 +53,7 @@ namespace SelfUpdateApp.settings
                 using (var ms = new MemoryStream())
                 {
                     var xmlSerializer = new XmlSerializer(typeof(AppSettings));
-                    xmlSerializer.Serialize(ms, Properties);
+                    xmlSerializer.Serialize(ms, Properties);        
                     byte[] wayPoints = ms.GetBuffer()
                         .Where(x => x != 0) //убираем лишние нули взятые из буфера
                         .ToArray();
@@ -58,10 +63,6 @@ namespace SelfUpdateApp.settings
                         fs.Write(wayPoints, 0, wayPoints.Length);
                     }
                 }
-            }
-            catch (SerializationException sex)
-            {
-                MessageBox.Show(sex.StackTrace, @"Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
             catch (Exception sex)
             {

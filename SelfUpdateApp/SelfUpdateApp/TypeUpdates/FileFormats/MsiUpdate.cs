@@ -1,16 +1,12 @@
 ﻿using System;
 using System.IO;
 
-namespace SelfUpdateApp.TypeUpdates
+namespace SelfUpdateApp.TypeUpdates.FileFormats
 {
     public class MsiUpdate : ServerUpdateFile
     {
-        public MsiUpdate()
-            : this(string.Empty) { }
-
-        public MsiUpdate(string fileName)
-            : base(fileName) { }
-
+        public MsiUpdate(){ }
+        
         public override bool Install()
         {
             FileNameOnServer = FileNameOnServer;

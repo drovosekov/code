@@ -1,13 +1,14 @@
 ﻿using System;
-using System.IO;
-using System.Runtime.Serialization;
+using System.IO; 
+using System.Xml.Serialization;
 using SelfUpdateApp.settings;
 
 namespace SelfUpdateApp.Protocols
 {
-    [DataContract]
+    [XmlRoot]
     public class SmbServer : ServerProtocol
     {
+        [XmlIgnore]
         public override DateTime FileOnServerCreationDateTime
         {
             get

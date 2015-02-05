@@ -2,16 +2,11 @@
 using System.IO;
 using SelfUpdateApp.settings;
 
-namespace SelfUpdateApp.TypeUpdates
+namespace SelfUpdateApp.TypeUpdates.FileFormats
 {
     public class ZipArchiveFile : ServerUpdateFile
     {
-
-        public ZipArchiveFile()
-            : this("") { }
-
-        public ZipArchiveFile(string fileName)
-            : base(fileName) { }
+        public ZipArchiveFile(){ }
 
         public override bool Install()
         {

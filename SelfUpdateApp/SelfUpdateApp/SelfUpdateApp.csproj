@@ -56,32 +56,31 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Protocols\NetworkShareAccesser.cs" />
+    <Compile Include="Classes\NetworkShareAccesser.cs" />
     <Compile Include="settings\properties\PropertyDescriptionString.cs" />
     <Compile Include="settings\Secure.cs" />
     <Compile Include="settings\AppSettings.cs" />
     <Compile Include="settings\CommonFunctions.cs" />
     <Compile Include="settings\properties\PropertyDescriptionInt.cs" />
     <Compile Include="settings\SettingsController.cs" />
-    <Compile Include="TypeUpdates\InstallController.cs" />
-    <Compile Include="TypeUpdates\RawFile.cs" />
-    <Compile Include="TypeUpdates\ZipArchiveFile.cs" />
-    <Compile Include="TypeUpdates\MsiUpdate.cs" />
+    <Compile Include="TypeUpdates\FileFormats\RawFile.cs" />
+    <Compile Include="TypeUpdates\FileFormats\ZipArchiveFile.cs" />
+    <Compile Include="TypeUpdates\FileFormats\MsiUpdate.cs" />
     <Compile Include="FormApp.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="FormApp.Designer.cs">
       <DependentUpon>FormApp.cs</DependentUpon>
     </Compile>
-    <Compile Include="Protocols\IGetFile.cs" />
-    <Compile Include="Protocols\SmbServer.cs" />
-    <Compile Include="Protocols\ServerProtocol.cs" />
+    <Compile Include="SAL\IGetFile.cs" />
+    <Compile Include="SAL\SmbServer.cs" />
+    <Compile Include="SAL\ServerProtocol.cs" />
     <Compile Include="TypeUpdates\UpdateInfoManifest.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Classes\AppUpdater.cs" />
-    <Compile Include="TypeUpdates\ServerUpdateFile.cs" />
-    <Compile Include="Protocols\RestServer.cs" />
+    <Compile Include="TypeUpdates\FileFormats\ServerUpdateFile.cs" />
+    <Compile Include="SAL\RestServer.cs" />
     <EmbeddedResource Include="FormApp.resx">
       <DependentUpon>FormApp.cs</DependentUpon>
       <SubType>Designer</SubType>

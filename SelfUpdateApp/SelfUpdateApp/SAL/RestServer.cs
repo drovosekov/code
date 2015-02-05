@@ -1,14 +1,15 @@
 using System;
 using System.IO;
-using System.Net;
-using System.Runtime.Serialization;
+using System.Net; 
 using System.Windows.Forms;
+using System.Xml.Serialization;
 
 namespace SelfUpdateApp.Protocols
 {
-    [DataContract]
+    [XmlRoot]
     public class RestServer : ServerProtocol
     {
+        [XmlIgnore]
         public override DateTime FileOnServerCreationDateTime
         {
             get

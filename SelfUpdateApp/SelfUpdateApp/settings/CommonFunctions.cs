@@ -22,21 +22,24 @@ namespace SelfUpdateApp.settings
                 return String.Format(@"{0}\update\", GetAppDirectoryPath);
             }
         }
-        internal static string GetAppLocalUpdateInfoFilePath
+
+        public static string GetAppLocalUpdateInfoFilePath
         {
             get
             {
                 return Path.Combine(GetAppUpdateDirectoryPath + "UpdateInfo.xml");
             }
         }
-        internal static string GetSettingsFilePath
+
+        public static string GetSettingsFilePath
         {
             get
             {
                 return String.Format(@"{0}\settings.xml", GetAppDirectoryPath);
             }
         }
-        internal static string GetAppDirectoryPath
+
+        public static string GetAppDirectoryPath
         {
             get
             {

@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Text;
 using SelfUpdateApp.settings;
 using SelfUpdateApp.TypeUpdates;
+using SelfUpdateApp.TypeUpdates.FileFormats;
 
 namespace SelfUpdateApp
 {

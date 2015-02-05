@@ -1,16 +1,16 @@
 ﻿using System;
-using System.Runtime.Serialization;
 using System.Xml.Serialization;
 using SelfUpdateApp.settings.properties;
 
 namespace SelfUpdateApp.Protocols
 {
-    [DataContract]
-    [KnownType(typeof(RestServer)), KnownType(typeof(SmbServer))]
+    [XmlRoot] 
     [XmlInclude(typeof(RestServer)), XmlInclude(typeof(SmbServer))]
     public abstract class ServerProtocol : IGetFile
     {
         private static PropertyDescriptionString _serverName = new PropertyDescriptionString("Адрес сервера обновлений");
+
+        [XmlElement]
         public PropertyDescriptionString ServerName
         {
             get { return _serverName; }
@@ -18,6 +18,8 @@ namespace SelfUpdateApp.Protocols
         }
 
         private PropertyDescriptionString _serverFileAdress = new PropertyDescriptionString("Путь к файлу на сервере");
+
+        [XmlElement]
         public PropertyDescriptionString ServerFileAdress
         {
             get { return _serverFileAdress; }
@@ -25,6 +27,8 @@ namespace SelfUpdateApp.Protocols
         }
 
         private PropertyDescriptionString _shareName = new PropertyDescriptionString("Название сетевого ресурса (например сетевой папки)");
+
+        [XmlElement]
         public PropertyDescriptionString ShareName
         {
             get { return _shareName; }
@@ -32,6 +36,8 @@ namespace SelfUpdateApp.Protocols
         }
 
         private static PropertyDescriptionString _serverLogin = new PropertyDescriptionString("Логин для доступа к серверу");
+
+        [XmlElement]
         public PropertyDescriptionString ServerLogin
         {
             get { return _serverLogin; }
@@ -39,6 +45,8 @@ namespace SelfUpdateApp.Protocols
         }
 
         private static PropertyDescriptionString _serverPassword = new PropertyDescriptionString("Пароль для доступа к серверу");
+
+        [XmlElement]
         public PropertyDescriptionString ServerPassword
         {
             get { return _serverPassword; }
@@ -55,7 +63,7 @@ namespace SelfUpdateApp.Protocols
          
         public abstract DateTime FileOnServerCreationDateTime { get; }
 
-        [XmlIgnore, IgnoreDataMember]
+        [XmlIgnore]
         public string ErrorMessage { get; protected set; }
     }
 }

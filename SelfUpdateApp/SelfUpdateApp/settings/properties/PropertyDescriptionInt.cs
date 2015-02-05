@@ -1,9 +1,8 @@
-﻿using System.Runtime.Serialization;
-using System.Xml.Serialization;
+﻿using System.Xml.Serialization;
 
 namespace SelfUpdateApp.settings.properties
 {
-    [DataContract]
+    [XmlRoot]
     public class PropertyDescriptionInt
     {
         public PropertyDescriptionInt()
@@ -15,9 +14,9 @@ namespace SelfUpdateApp.settings.properties
             Description = value;
         }
 
-        [DataMember, XmlAttribute]
+        [XmlAttribute]
         public string Description { get; set; }
-        [DataMember, XmlText]
+        [XmlText]
         public int Value { get; set; }
     }
 }

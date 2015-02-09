@@ -1,5 +1,5 @@
 ﻿CSV Import parser
-=========
+==========
 
 This tool utility was writen for simply importing flat data from CSV format into MS SQL database.
 Also it can be used for parse CSV data to custom class collection

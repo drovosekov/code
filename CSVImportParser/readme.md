@@ -1,8 +1,8 @@
 ﻿CSV Import parser
 ========
-![Скриншот](screenshots/1.PNG "Скриншот")
+![Скриншот](screenshots/1.PNG "Сопоставление полей таблицы с заданными значениями")
 
-![Скриншот](screenshots/2.PNG "Скриншот")
+![Скриншот](screenshots/2.PNG "Выбор разделителя данных в файле CSV")
 
 This tool utility was writen for simply importing flat data from CSV format into database.
 Also it can be used for parse CSV data to custom class collection

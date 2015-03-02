@@ -15,6 +15,7 @@ namespace SelfUpdateApp
     public class AppUpdater : IDisposable
     {
         public string ErrorMessage;
+        private UpdateInfoManifest _filesForUpdateInfo;
         private ServerProtocol _serverProtocol;
         private readonly string _localInfoFilePath = CommonFunctions.GetAppLocalUpdateInfoFilePath;
 
@@ -31,48 +32,58 @@ namespace SelfUpdateApp
         {
             if (checkResult == null) throw new Exception("Не задан делегат CheckResult");
 
-            //if (File.Exists(_localInfoFilePath))
-            //{
-            //    DateTime fileCreationTime = _serverProtocol.FileOnServerCreationDateTime;
-            //    //if (DateTime.Compare(fileCreationTime, File.GetLastWriteTimeUtc(_localInfoFilePath)) <= 0)  {
-            //    checkResult(false);
-            //    return;
-            //    //}
-            //}
-
-            //if (await Task<bool>.Factory
-            //            .StartNew(() => _serverProtocol.DownloadFileTo(_localInfoFilePath)) == false)
-            //{
-            //    Log(_serverProtocol.ErrorMessage);
-            //    checkResult(false);
-            //    return;
-            //};
-
-            UpdateInfoManifest filesForUpdateInfo;
-            using (FileStream fs = File.Open(_localInfoFilePath, FileMode.Open, FileAccess.Read))
+            if (File.Exists(_localInfoFilePath))
             {
-                byte[] buffer = new byte[fs.Length];
-                fs.Read(buffer, 0, (int)fs.Length);
-                var xmlSerializer = new XmlSerializer(typeof(UpdateInfoManifest));
-                using (Stream stream = new MemoryStream(buffer))
+                DateTime fileCreationTime = _serverProtocol.FileOnServerCreationDateTime;
+                //if (DateTime.Compare(fileCreationTime, File.GetLastWriteTimeUtc(_localInfoFilePath)) <= 0)  {
+                checkResult(false);
+                return;
+                //}
+            }
+
+            if (await Task<bool>.Factory
+                        .StartNew(() => _serverProtocol.DownloadFileTo(_localInfoFilePath)) == false)
+            {
+                Log(_serverProtocol.ErrorMessage);
+                checkResult(false);
+                return;
+            };
+
+            try
+            {
+                using (FileStream fs = File.Open(_localInfoFilePath, FileMode.Open, FileAccess.Read))
                 {
-                    filesForUpdateInfo = (UpdateInfoManifest)xmlSerializer.Deserialize(stream);
+                    byte[] buffer = new byte[fs.Length];
+                    fs.Read(buffer, 0, (int)fs.Length);
+                    var xmlSerializer = new XmlSerializer(typeof(UpdateInfoManifest));
+                    using (Stream stream = new MemoryStream(buffer))
+                    {
+                        _filesForUpdateInfo = (UpdateInfoManifest)xmlSerializer.Deserialize(stream);
+                    }
                 }
             }
-
-            switch (filesForUpdateInfo.UpdateFilesList.Count)
+            catch (Exception ex)
             {
-                case 0:
-                    checkResult(false);
-                    return;
-                case 1:
-                    DownloadFileForUpdate(filesForUpdateInfo.UpdateFilesList[0]);
-                    break;
-                default:
-                    filesForUpdateInfo.UpdateFilesList.Sort();
-                    Parallel.ForEach(filesForUpdateInfo.UpdateFilesList, DownloadFileForUpdate);
-                    break;
+                Log(ex.Message);
+                checkResult(false);
+                return;
             }
+
+            checkResult(_filesForUpdateInfo.UpdateFilesList.Count > 0);
+
+            //switch (_filesForUpdateInfo.UpdateFilesList.Count)
+            //{
+            //    case 0:
+            //        checkResult(false);
+            //        return;
+            //    case 1:
+            //        DownloadFileForUpdate(_filesForUpdateInfo.UpdateFilesList[0]);
+            //        break;
+            //    default:
+            //        _filesForUpdateInfo.UpdateFilesList.Sort();
+            //        Parallel.ForEach(_filesForUpdateInfo.UpdateFilesList, DownloadFileForUpdate);
+            //        break;
+            //}
         }
 
         /// <summary>
@@ -82,16 +93,15 @@ namespace SelfUpdateApp
         private async void DownloadFileForUpdate(ServerUpdateFile upd)
         {
             var localFilePath = Path.Combine(CommonFunctions.GetAppDirectoryPath, ServerUpdateFile.UpdateFolderPath, upd.FileNameOnServer);
-
+            
             //если файл уже скачан и хеш совпадает - не качаем его и не устанавливаем
             if (File.Exists(localFilePath) &&
                 localFilePath.GetHashFile() == upd.Hash) return;
-            
+
             if (await Task<bool>.Factory
                 .StartNew(() => _serverProtocol.DownloadFile(upd.FileNameOnServer, localFilePath)))
             {
-                await Task<bool>.Factory
-                    .StartNew(upd.Install);
+                await Task<bool>.Factory.StartNew(upd.Install);
 
                 Log(upd.ErrorMessage);
             }
@@ -101,6 +111,7 @@ namespace SelfUpdateApp
             }
         }
 
+
         private void Log(string message)
         {
             ErrorMessage += message + Environment.NewLine;
@@ -109,6 +120,7 @@ namespace SelfUpdateApp
         public void Dispose()
         {
             _serverProtocol = null;
+            _filesForUpdateInfo = null;
         }
     }
 }
